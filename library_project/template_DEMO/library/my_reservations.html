@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}My Reservations - Chapter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">My Reservations</h1>
+    
+    <ul class="nav nav-tabs mb-4" id="reservationTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button" role="tab" aria-controls="upcoming" aria-selected="true">
+                Upcoming Reservations
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="past-tab" data-bs-toggle="tab" data-bs-target="#past" type="button" role="tab" aria-controls="past" aria-selected="false">
+                Past Reservations
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="reservationsTabContent">
+        <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+            {% if upcoming_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Room</th>
+                                <th scope="col">Topic</th>
+                                <th scope="col">Start Time</th>
+                                <th scope="col">End Time</th>
+                                <th scope="col">Group Size</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in upcoming_reservations %}
+                            <tr>
+                                <td>Room #{{ reservation.study_room.room_id }}</td>
+                                <td>{{ reservation.topic_desc }}</td>
+                                <td>{{ reservation.start_dt|date:"M d, Y - g:i a" }}</td>
+                                <td>{{ reservation.end_dt|date:"M d, Y - g:i a" }}</td>
+                                <td>{{ reservation.group_size }} people</td>
+                                <td>
+                                    <a href="{% url 'library:cancel_reservation' reservation.reserve_id %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-calendar-times me-1"></i>Cancel
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p>You don't have any upcoming reservations.</p>
+                    <p>Visit the <a href="{% url 'library:study_room_list' %}">Study Rooms</a> page to make a reservation.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="tab-pane fade" id="past" role="tabpanel" aria-labelledby="past-tab">
+            {% if past_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Room</th>
+                                <th scope="col">Topic</th>
+                                <th scope="col">Start Time</th>
+                                <th scope="col">End Time</th>
+                                <th scope="col">Group Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in past_reservations %}
+                            <tr>
+                                <td>Room #{{ reservation.study_room.room_id }}</td>
+                                <td>{{ reservation.topic_desc }}</td>
+                                <td>{{ reservation.start_dt|date:"M d, Y - g:i a" }}</td>
+                                <td>{{ reservation.end_dt|date:"M d, Y - g:i a" }}</td>
+                                <td>{{ reservation.group_size }} people</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p>You don't have any past reservations.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'library:study_room_list' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Reserve a Room
+        </a>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Books - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Books</h2>
+        </div>
+        {% if is_employee %}
+        <div class="col-auto">
+            <a href="{% url 'library:book_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Book
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search books..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.topic_id }}" {% if request.GET.category == category.topic_id|stringformat:"i" %}selected{% endif %}>
+                            {{ category.topic_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+                <div class="col-md-2">
+                    <a href="{% url 'library:book_list' %}" class="btn btn-secondary w-100">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Books List -->
+    <div class="row">
+        {% for book in books %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.book_name }}</h5>
+                    <p class="card-text">
+                        <strong>Authors:</strong> 
+                        {% for author in book.authors.all %}
+                            {{ author.fname }} {{ author.lname }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}<br>
+                        <strong>Category:</strong> {{ book.topic.topic_name }}<br>
+                        <strong>Available Copies:</strong> {{ book.available_copies }}
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'library:book_detail' book.book_id %}" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        {% if is_employee %}
+                        <a href="{% url 'library:book_update' book.book_id %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'library:book_add_copies' book.book_id %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add Copies
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No books found. {% if search_query %}Try a different search term.{% else %}Add some books to get started.{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if books.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if books.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ books.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                    Previous
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+
+            {% for i in books.paginator.page_range %}
+            <li class="page-item {% if books.number == i %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                    {{ i }}
+                </a>
+            </li>
+            {% endfor %}
+
+            {% if books.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ books.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                    Next
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %} 

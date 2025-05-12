@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Chapter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">My Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <h5 class="card-title">{{ user.username }}</h5>
+                            <p class="text-muted">{{ user.email }}</p>
+                            <p>Member since: {{ user.date_joined|date:"F j, Y" }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Account Information</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Username
+                                    <span>{{ user.username }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Email
+                                    <span>{{ user.email }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Last Login
+                                    <span>{{ user.last_login|date:"F j, Y, g:i a" }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Customer Information</h5>
+                            {% if user.customer_profile %}
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Name
+                                        <span>{{ user.customer_profile.full_name }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Phone
+                                        <span>{{ user.customer_profile.phone }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Address
+                                        <span>{{ user.customer_profile.address }}</span>
+                                    </li>
+                                </ul>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <p>You don't have a customer profile yet.</p>
+                                    <p>A customer profile is required to rent books, reserve study rooms, and register for events.</p>
+                                    <p>Please contact a library staff member to create your customer profile.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5>Quick Links</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <a href="{% url 'library:rental_list' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-book me-2"></i>My Rentals
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a href="{% url 'library:my_reservations' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-calendar-alt me-2"></i>My Reservations
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a href="{% url 'library:invoice_list' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>My Invoices
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

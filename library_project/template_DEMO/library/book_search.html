@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results - Chapter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Search Results for "{{ query }}"</h1>
+    
+    {% if books %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            {% for book in books %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ book.book_name }}</h5>
+                            <p class="card-text text-muted">
+                                {% for author in book.authors.all %}
+                                    {% if not forloop.first %}, {% endif %}
+                                    {{ author.full_name }}
+                                {% endfor %}
+                            </p>
+                            <p class="card-text">
+                                <span class="badge bg-primary">{{ book.topic.topic_name }}</span>
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a href="{% url 'library:book_detail' book.book_id %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                <small class="text-muted">
+                                    {% with available=book.available_copies %}
+                                        {% if available > 0 %}
+                                            <span class="text-success">{{ available }} available</span>
+                                        {% else %}
+                                            <span class="text-danger">Not available</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No books found matching your search criteria.</p>
+            <p>Try searching with different keywords or browse our <a href="{% url 'library:book_list' %}">book catalog</a>.</p>
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'library:book_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Book List
+        </a>
+    </div>
+</div>
+{% endblock %} 

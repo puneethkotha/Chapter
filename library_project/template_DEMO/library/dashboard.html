@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}Library Management Dashboard - Chapter{% endblock %}
+
+{% block content %}
+<!-- Add Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container py-4">
+    <h1 class="mb-4">Library Management Dashboard</h1>
+
+    <!-- Today's Activity -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">New Rentals Today</h5>
+                    <h2 class="display-4">{{ new_rentals_today }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Returns Today</h5>
+                    <h2 class="display-4">{{ returns_today }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Reservations Today</h5>
+                    <h2 class="display-4">{{ reservations_today }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <!-- Weekly Activity Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Weekly Activity</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyActivityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Popular Books Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Most Popular Books</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="popularBooksChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Invoices</h5>
+                    <h2 class="display-4">{{ total_invoices }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="display-4">${{ total_revenue|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Unpaid Invoices</h5>
+                    <h2 class="display-4">{{ unpaid_invoices }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Revenue Chart -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Monthly Revenue Trend</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="monthlyRevenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Overdue Rentals -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="card-title mb-0">Overdue Rentals</h5>
+        </div>
+        <div class="card-body">
+            {% if overdue_rentals %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Book</th>
+                            <th>Due Date</th>
+                            <th>Days Overdue</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rental in overdue_rentals %}
+                        <tr>
+                            <td>{{ rental.customer.fname }} {{ rental.customer.lname }}</td>
+                            <td>{{ rental.book_copy.book.book_name }}</td>
+                            <td>{{ rental.exp_return_dt|date:"M d, Y" }}</td>
+                            <td>{{ rental.exp_return_dt|timesince }}</td>
+                            <td>
+                                <a href="{% url 'library:rental_detail' rental.rental_id %}" class="btn btn-sm btn-primary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-success mb-0">No overdue rentals!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Book Management -->
+                    <h6 class="mb-3">Book Management</h6>
+                    <div class="d-flex gap-2 mb-4">
+                        <a href="{% url 'library:book_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add New Book
+                        </a>
+                        <a href="{% url 'library:book_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>View All Books
+                        </a>
+                        <a href="{% url 'library:author_create' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-edit me-1"></i>Add Author
+                        </a>
+                    </div>
+
+                    <!-- Rental Management -->
+                    <h6 class="mb-3">Rental Management</h6>
+                    <div class="d-flex gap-2 mb-4">
+                        <a href="{% url 'library:rental_create' %}" class="btn btn-success">
+                            <i class="fas fa-book me-1"></i>Create Rental
+                        </a>
+                        <a href="{% url 'library:employee_rental_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-list me-1"></i>View All Rentals
+                        </a>
+                    </div>
+
+                    <!-- Customer Management -->
+                    <h6 class="mb-3">Customer Management</h6>
+                    <div class="d-flex gap-2 mb-4">
+                        <a href="{% url 'library:customer_create' %}" class="btn btn-info">
+                            <i class="fas fa-user-plus me-1"></i>Add Customer
+                        </a>
+                        <a href="{% url 'library:customer_list' %}" class="btn btn-outline-info">
+                            <i class="fas fa-users me-1"></i>View All Customers
+                        </a>
+                    </div>
+
+                    <!-- Event & Room Management -->
+                    <h6 class="mb-3">Events & Rooms</h6>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'library:event_create' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-calendar-plus me-1"></i>Create Event
+                        </a>
+                        <a href="{% url 'library:event_list' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-calendar-alt me-1"></i>View Events
+                        </a>
+                        <a href="{% url 'library:study_room_bookings' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-calendar-check me-1"></i>View Bookings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Initialization Scripts -->
+<script>
+// Parse Django template variables into JavaScript variables
+const weeklyLabels = JSON.parse('{{ weekly_labels|safe }}');
+const weeklyRentals = JSON.parse('{{ weekly_rentals|safe }}');
+const weeklyReturns = JSON.parse('{{ weekly_returns|safe }}');
+const popularBooksLabels = JSON.parse('{{ popular_books_labels|safe }}');
+const popularBooksData = JSON.parse('{{ popular_books_data|safe }}');
+const monthlyRevenueLabels = JSON.parse('{{ monthly_revenue_labels|safe }}');
+const monthlyRevenueData = JSON.parse('{{ monthly_revenue_data|safe }}');
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Weekly Activity Chart
+    const weeklyActivityCtx = document.getElementById('weeklyActivityChart').getContext('2d');
+    new Chart(weeklyActivityCtx, {
+        type: 'line',
+        data: {
+            labels: weeklyLabels,
+            datasets: [{
+                label: 'Rentals',
+                data: weeklyRentals,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }, {
+                label: 'Returns',
+                data: weeklyReturns,
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Weekly Activity Trends'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 500,
+                    stepSize: 50,
+                    title: {
+                        display: true,
+                        text: 'Count'
+                    }
+                }
+            }
+        }
+    });
+
+    // Popular Books Chart
+    const popularBooksCtx = document.getElementById('popularBooksChart').getContext('2d');
+    new Chart(popularBooksCtx, {
+        type: 'bar',
+        data: {
+            labels: popularBooksLabels,
+            datasets: [{
+                label: 'Times Rented',
+                data: popularBooksData,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Most Popular Books'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 500,
+                    title: {
+                        display: true,
+                        text: 'Times Rented'
+                    },
+                    ticks: {
+                        stepSize: 100
+                    }
+                }
+            }
+        }
+    });
+
+    // Monthly Revenue Chart
+    const monthlyRevenueCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+    new Chart(monthlyRevenueCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyRevenueLabels,
+            datasets: [{
+                label: 'Revenue',
+                data: monthlyRevenueData,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgb(75, 192, 192)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Monthly Revenue'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100000,
+                    stepSize: 10000,
+                    title: {
+                        display: true,
+                        text: 'Revenue ($)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

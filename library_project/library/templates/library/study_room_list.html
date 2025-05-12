@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Study Rooms - Chapter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Study Rooms</h1>
+    <p class="lead">Reserve a study room. See availability and details below.</p>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Room ID</th>
+                    <th scope="col">Capacity</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in rooms %}
+                <tr>
+                    <td>{{ room.room_id }}</td>
+                    <td>{{ room.capacity }}</td>
+                    <td>
+                        {% if room.is_available %}
+                            <span class="badge bg-success">Available</span>
+                        {% else %}
+                            <span class="badge bg-danger">Occupied</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if room.is_available and room.room_id %}
+                            <button 
+                                class="btn btn-primary btn-sm reserve-btn" 
+                                data-room-id="{{ room.room_id }}"
+                                data-room-capacity="{{ room.capacity }}">
+                                Reserve
+                            </button>
+                        {% else %}
+                            <button class="btn btn-secondary btn-sm" disabled>Not Available</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No study rooms available at the moment.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Reservation Modal -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reservationModalLabel">Reserve Room</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reservationForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="room_id" name="room_id">
+                    
+                    <div class="mb-3">
+                        <label for="topic_desc" class="form-label">Topic/Description</label>
+                        <input type="text" class="form-control" id="topic_desc" name="topic_desc" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="start_dt" class="form-label">Start Time</label>
+                        <input type="datetime-local" class="form-control" id="start_dt" name="start_dt" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="end_dt" class="form-label">End Time</label>
+                        <input type="datetime-local" class="form-control" id="end_dt" name="end_dt" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="group_size" class="form-label">Group Size</label>
+                        <input type="number" class="form-control" id="group_size" name="group_size" min="1" required>
+                        <small class="form-text text-muted">Maximum capacity: <span id="max-capacity"></span></small>
+                    </div>
+                </form>
+                <div id="reservation-errors" class="alert alert-danger d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmReservation">Confirm Reservation</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Reservation Confirmed</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success">
+                    <p>Your room has been reserved successfully!</p>
+                    <p>Room ID: <span id="confirm-room-id"></span></p>
+                    <p>Time: <span id="confirm-time"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize variables
+        const reservationModal = new bootstrap.Modal(document.getElementById('reservationModal'));
+        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        const reservationForm = document.getElementById('reservationForm');
+        const reservationErrors = document.getElementById('reservation-errors');
+        
+        // Set default times (2 hours from now for start, 4 hours from now for end)
+        function setDefaultTimes() {
+            const now = new Date();
+            const startTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+            const endTime = new Date(now.getTime() + 3 * 60 * 60 * 1000); // 3 hours from now
+            
+            // Format dates for datetime-local input
+            const formatDate = (date) => {
+                return date.toISOString().slice(0, 16);
+            };
+            
+            document.getElementById('start_dt').value = formatDate(startTime);
+            document.getElementById('end_dt').value = formatDate(endTime);
+        }
+        
+        // Add event listeners to reserve buttons
+        document.querySelectorAll('.reserve-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const roomId = this.getAttribute('data-room-id');
+                const capacity = this.getAttribute('data-room-capacity');
+                
+                // Set form values
+                document.getElementById('room_id').value = roomId;
+                document.getElementById('max-capacity').textContent = capacity;
+                document.getElementById('group_size').max = capacity;
+                document.getElementById('group_size').value = 1;
+                
+                // Set default times
+                setDefaultTimes();
+                
+                // Reset any previous errors
+                reservationErrors.classList.add('d-none');
+                reservationErrors.textContent = '';
+                
+                // Show modal
+                reservationModal.show();
+            });
+        });
+        
+        // Handle reservation confirmation
+        document.getElementById('confirmReservation').addEventListener('click', function() {
+            // Get form data
+            const formData = new FormData(reservationForm);
+            const roomId = document.getElementById('room_id').value;
+            
+            // Send AJAX request
+            fetch(`/rooms/${roomId}/reserve/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Hide reservation modal
+                    reservationModal.hide();
+                    
+                    // Set confirmation details
+                    document.getElementById('confirm-room-id').textContent = roomId;
+                    document.getElementById('confirm-time').textContent = 
+                        `${new Date(formData.get('start_dt')).toLocaleString()} to ${new Date(formData.get('end_dt')).toLocaleString()}`;
+                    
+                    // Show confirmation modal
+                    confirmationModal.show();
+                    
+                    // Update room status in the table
+                    const roomRow = document.querySelector(`[data-room-id="${roomId}"]`).closest('tr');
+                    roomRow.querySelector('td:nth-child(3)').innerHTML = '<span class="badge bg-danger">Reserved</span>';
+                    roomRow.querySelector('td:nth-child(4)').innerHTML = '<button class="btn btn-secondary btn-sm" disabled>Not Available</button>';
+                } else {
+                    // Show errors
+                    reservationErrors.classList.remove('d-none');
+                    reservationErrors.textContent = data.errors || 'An error occurred. Please try again.';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                reservationErrors.classList.remove('d-none');
+                reservationErrors.textContent = 'An error occurred. Please try again.';
+            });
+        });
+        
+        // Close confirmation modal and reload page
+        document.getElementById('confirmationModal').addEventListener('hidden.bs.modal', function () {
+            window.location.reload();
+        });
+    });
+</script>
+{% endblock %} 

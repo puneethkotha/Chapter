@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Study Room Bookings - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Study Room Bookings</h1>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Filter by Date</label>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ date_filter }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="room" class="form-label">Filter by Room</label>
+                    <select class="form-select" id="room" name="room">
+                        <option value="">All Rooms</option>
+                        {% for room in rooms %}
+                        <option value="{{ room.room_id }}" {% if room_filter == room.room_id|stringformat:"i" %}selected{% endif %}>
+                            Room {{ room.room_id }} (Capacity: {{ room.capacity }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                    <a href="{% url 'library:study_room_bookings' %}" class="btn btn-outline-secondary">Clear Filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if reservations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Customer</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in reservations %}
+                        <tr>
+                            <td>Room {{ reservation.study_room.room_id }} (Capacity: {{ reservation.study_room.capacity }})</td>
+                            <td>{{ reservation.customer.fname }} {{ reservation.customer.lname }}</td>
+                            <td>{{ reservation.start_dt|date:"M d, Y H:i" }}</td>
+                            <td>{{ reservation.end_dt|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if reservation.end_dt < now %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                {% elif reservation.start_dt > now %}
+                                    <span class="badge bg-primary">Upcoming</span>
+                                {% else %}
+                                    <span class="badge bg-success">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'library:cancel_reservation' reservation.reserve_id %}" 
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Are you sure you want to cancel this reservation?')">
+                                    Cancel
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center mb-0">No bookings found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Event{% else %}Create Event{% endif %} - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{% if form.instance.pk %}Edit Event{% else %}Create New Event{% endif %}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.event_name.id_for_label }}" class="form-label">Event Name</label>
+                            <input type="text" name="{{ form.event_name.name }}" id="{{ form.event_name.id_for_label }}" class="form-control" value="{{ form.event_name.value|default:'' }}">
+                            {% if form.event_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.event_name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.start_dt.id_for_label }}" class="form-label">Start Date & Time</label>
+                                <input type="datetime-local" name="{{ form.start_dt.name }}" id="{{ form.start_dt.id_for_label }}" class="form-control" value="{{ form.start_dt.value|date:'Y-m-d\TH:i'|default:'' }}">
+                                {% if form.start_dt.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.start_dt.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.end_dt.id_for_label }}" class="form-label">End Date & Time</label>
+                                <input type="datetime-local" name="{{ form.end_dt.name }}" id="{{ form.end_dt.id_for_label }}" class="form-control" value="{{ form.end_dt.value|date:'Y-m-d\TH:i'|default:'' }}">
+                                {% if form.end_dt.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.end_dt.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.attd_no.id_for_label }}" class="form-label">Expected Attendance</label>
+                            <input type="number" name="{{ form.attd_no.name }}" id="{{ form.attd_no.id_for_label }}" class="form-control" value="{{ form.attd_no.value|default:'' }}" min="1">
+                            {% if form.attd_no.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.attd_no.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="event_type" class="form-label">Event Type</label>
+                            <select name="event_type" id="event_type" class="form-control">
+                                <option value="E">Exhibition</option>
+                                <option value="S">Seminar</option>
+                            </select>
+                        </div>
+
+                        <div id="exhibition-fields" class="mb-3">
+                            <div class="mb-3">
+                                <label for="{{ exhibition_form.expenses.id_for_label }}" class="form-label">Expenses</label>
+                                <input type="number" name="{{ exhibition_form.expenses.name }}" id="{{ exhibition_form.expenses.id_for_label }}" class="form-control" value="{{ exhibition_form.expenses.value|default:'' }}" step="0.01" min="0">
+                                {% if exhibition_form.expenses.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in exhibition_form.expenses.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div id="seminar-fields" class="mb-3" style="display: none;">
+                            <div class="mb-3">
+                                <label for="{{ seminar_form.est_auth.id_for_label }}" class="form-label">Estimated Authors</label>
+                                <input type="number" name="{{ seminar_form.est_auth.name }}" id="{{ seminar_form.est_auth.id_for_label }}" class="form-control" value="{{ seminar_form.est_auth.value|default:'' }}" min="1">
+                                {% if seminar_form.est_auth.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in seminar_form.est_auth.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'library:event_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Events
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>{% if form.instance.pk %}Update Event{% else %}Create Event{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Handle event type change
+    document.addEventListener('DOMContentLoaded', function() {
+        const eventTypeSelect = document.getElementById('event_type');
+        const exhibitionFields = document.getElementById('exhibition-fields');
+        const seminarFields = document.getElementById('seminar-fields');
+
+        eventTypeSelect.addEventListener('change', function() {
+            if (this.value === 'E') {
+                exhibitionFields.style.display = 'block';
+                seminarFields.style.display = 'none';
+            } else {
+                exhibitionFields.style.display = 'none';
+                seminarFields.style.display = 'block';
+            }
+        });
+
+        // Trigger change event to set initial state
+        eventTypeSelect.dispatchEvent(new Event('change'));
+    });
+</script>
+{% endblock %}
+{% endblock %} 

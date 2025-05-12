@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.book_name }} - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">{{ book.book_name }}</h2>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-muted">Book Details</h5>
+                        <dl class="row">
+                            <dt class="col-sm-3">Topic</dt>
+                            <dd class="col-sm-9">{{ book.topic.topic_name|default:"Not specified" }}</dd>
+                            
+                            <dt class="col-sm-3">Authors</dt>
+                            <dd class="col-sm-9">
+                                {% for author in book.authors.all %}
+                                    {{ author.full_name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    No authors listed
+                                {% endfor %}
+                            </dd>
+                            
+                            <dt class="col-sm-3">Available Copies</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge {% if available_copies > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ available_copies }} available
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        {% if available_copies > 0 %}
+                            <div class="d-grid gap-2">
+                                <form method="post" action="{% url 'library:borrow_book' book.book_id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-book-reader me-2"></i>Borrow Book
+                                    </button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <button class="btn btn-outline-primary" disabled>
+                                <i class="fas fa-book-reader me-2"></i>Not Available
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if is_employee %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Rental History</h5>
+                    {% if rental_history %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Borrow Date</th>
+                                    <th>Return Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in rental_history %}
+                                <tr>
+                                    <td>{{ rental.customer.fname }} {{ rental.customer.lname }}</td>
+                                    <td>{{ rental.borrow_date|date:"M d, Y" }}</td>
+                                    <td>{{ rental.actual_return_dt|date:"M d, Y"|default:"Not returned" }}</td>
+                                    <td>
+                                        <span class="badge {% if rental.status == 'Returned' %}bg-success{% elif rental.status == 'Borrowed' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ rental.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No rental history available.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if similar_books %}
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Similar Books</h5>
+                    <div class="list-group">
+                        {% for similar in similar_books %}
+                        <a href="{% url 'library:book_detail' similar.book_id %}" class="list-group-item list-group-item-action">
+                            {{ similar.book_name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

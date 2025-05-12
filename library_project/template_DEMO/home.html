@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Chapter - Where every book finds you{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">Welcome to Chapter</h1>
+        <p class="lead mb-4">Where every book finds you</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'library:book_list' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-book me-2"></i>Browse Books
+            </a>
+            {% if not is_authenticated %}
+            <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Join Chapter
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <i class="fas fa-book"></i>
+                    <h3>{{ total_books }}</h3>
+                    <p>Total Books</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <i class="fas fa-book-reader"></i>
+                    <h3>{{ active_rentals }}</h3>
+                    <p>Active Rentals</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>{{ upcoming_events|length }}</h3>
+                    <p>Upcoming Events</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <i class="fas fa-door-open"></i>
+                    <h3>{{ available_rooms }}</h3>
+                    <p>Available Study Rooms</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Books Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Featured Books</h2>
+            <a href="{% url 'library:book_list' %}" class="btn btn-outline-primary">
+                View All Books <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            {% for book in featured_books %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ book.book_name }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-user-edit me-2"></i>
+                            {% for author in book.authors.all %}
+                                {{ author.full_name }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                        {% if book.topic %}
+                        <p class="card-text">
+                            <span class="badge bg-primary">{{ book.topic.topic_name }}</span>
+                        </p>
+                        {% endif %}
+                        <p class="card-text">
+                            <i class="fas fa-book me-2"></i>Available: {{ book.available_copies_count }}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{% url 'library:book_detail' book.book_id %}" class="btn btn-primary w-100">
+                            <i class="fas fa-info-circle me-2"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Upcoming Events Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Upcoming Exhibitions</h2>
+            <a href="{% url 'library:event_list' %}" class="btn btn-outline-primary">
+                View All Events <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        <div class="row g-4">
+            {% for event in upcoming_events %}
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.event_name }}</h5>
+                        <p class="card-text">
+                            <i class="fas fa-calendar me-2"></i>{{ event.start_dt|date:"F j, Y" }}
+                        </p>
+                        <p class="card-text">
+                            <i class="fas fa-clock me-2"></i>{{ event.start_dt|time:"g:i A" }}
+                        </p>
+                        <p class="card-text">
+                            <i class="fas fa-users me-2"></i>Capacity: {{ event.attd_no }}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        {% if event.event_name and event.start_dt and event.end_dt and event.attd_no %}
+                            {% if is_authenticated %}
+                                <a href="{% url 'library:register_exhibition' event.event_id %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-user-plus me-2"></i>Register
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:customer_login' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login to Register
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <button class="btn btn-secondary w-100" disabled>
+                                <i class="fas fa-info-circle me-2"></i>Registration Coming Soon
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <p class="lead">No upcoming exhibitions at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+{% if not is_authenticated %}
+<section class="py-5 text-center">
+    <div class="container">
+        <h2 class="mb-4">Join Chapter Community</h2>
+        <p class="lead mb-4">Where every book finds you - Get access to our extensive collection of books, study rooms, and exclusive events.</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Sign Up Now
+        </a>
+    </div>
+</section>
+{% endif %}
+{% endblock %} 

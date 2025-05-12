@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Rental Details - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Rental Details</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Book</dt>
+                        <dd class="col-sm-8">{{ rental.book_copy.book.book_name }}</dd>
+                        
+                        <dt class="col-sm-4">Copy ID</dt>
+                        <dd class="col-sm-8">#{{ rental.book_copy.copy_id }}</dd>
+                        
+                        <dt class="col-sm-4">Borrow Date</dt>
+                        <dd class="col-sm-8">{{ rental.borrow_date|date:"F d, Y" }}</dd>
+                        
+                        <dt class="col-sm-4">Expected Return</dt>
+                        <dd class="col-sm-8">{{ rental.exp_return_dt|date:"F d, Y" }}</dd>
+                        
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if rental.status == 'Returned' %}bg-success{% elif rental.status == 'Borrowed' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ rental.status }}
+                            </span>
+                            {% if is_overdue %}
+                            <span class="badge bg-danger ms-2">
+                                {{ days_overdue }} days overdue
+                            </span>
+                            {% endif %}
+                        </dd>
+                        
+                        {% if rental.actual_return_dt %}
+                        <dt class="col-sm-4">Actual Return</dt>
+                        <dd class="col-sm-8">{{ rental.actual_return_dt|date:"F d, Y" }}</dd>
+                        {% endif %}
+                    </dl>
+
+                    {% if rental.invoice %}
+                    <div class="mt-4">
+                        <h5>Invoice Information</h5>
+                        <dl class="row">
+                            <dt class="col-sm-4">Invoice #</dt>
+                            <dd class="col-sm-8">{{ rental.invoice.invoice_id }}</dd>
+                            
+                            <dt class="col-sm-4">Amount</dt>
+                            <dd class="col-sm-8">${{ rental.invoice.invoice_amt|floatformat:2 }}</dd>
+                            
+                            <dt class="col-sm-4">Status</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge {% if rental.invoice.is_paid %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if rental.invoice.is_paid %}Paid{% else %}Unpaid{% endif %}
+                                </span>
+                            </dd>
+                        </dl>
+                        
+                        {% if not rental.invoice.is_paid %}
+                        <div class="mt-3">
+                            <a href="{% url 'library:process_payment' rental.invoice.invoice_id %}" class="btn btn-primary">
+                                <i class="fas fa-credit-card me-2"></i>Pay Now
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'library:rental_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Rentals
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ author.full_name }} - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Author Information -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Author Information</h5>
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'library:author_update' author.author_id %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title mb-3">{{ author.full_name }}</h4>
+                    <p class="card-text">
+                        <strong>Email:</strong> {{ author.email }}<br>
+                        <strong>Address:</strong><br>
+                        {{ author.street }}<br>
+                        {{ author.city }}{% if author.state %}, {{ author.state }}{% endif %}<br>
+                        {{ author.postal_code }}<br>
+                        {{ author.country }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Author's Books -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Books by {{ author.full_name }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if books %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Topic</th>
+                                    <th>Available Copies</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for book in books %}
+                                <tr>
+                                    <td>{{ book.book_name }}</td>
+                                    <td>{{ book.topic.topic_name }}</td>
+                                    <td>{{ book.available_copies_count }}</td>
+                                    <td>
+                                        <a href="{% url 'library:book_detail' book.book_id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        No books found for this author.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Author's Seminar Participation -->
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Seminar Participation</h5>
+                    {% if user.is_authenticated and user.is_author %}
+                    <a href="{% url 'library:author_seminar_registration' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus me-1"></i>Register for Seminar
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if author.seminar_attendance.all %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Seminar</th>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th>Attendees</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attendance in author.seminar_attendance.all %}
+                                <tr>
+                                    <td>{{ attendance.seminar.event.event_name }}</td>
+                                    <td>{{ attendance.seminar.event.start_dt|date:"M d, Y" }}</td>
+                                    <td>{{ attendance.seminar.event.start_dt|date:"g:i A" }} - {{ attendance.seminar.event.end_dt|date:"g:i A" }}</td>
+                                    <td>{{ attendance.seminar.event.attd_no }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        This author has not participated in any seminars.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

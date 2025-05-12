@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.book_name }} - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>{{ book.book_name }}</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Book Details</h5>
+                    <p class="card-text">
+                        <strong>Authors:</strong> 
+                        {% for author in book.authors.all %}
+                            {{ author.fname }} {{ author.lname }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}<br>
+                        <strong>Category:</strong> {{ book.topic.topic_name }}<br>
+                        <strong>Available Copies:</strong> {{ available_copies }}
+                    </p>
+                </div>
+            </div>
+
+            {% if is_employee %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Rental History</h5>
+                    {% if rental_history %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Borrow Date</th>
+                                    <th>Return Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rental in rental_history %}
+                                <tr>
+                                    <td>{{ rental.customer.fname }} {{ rental.customer.lname }}</td>
+                                    <td>{{ rental.borrow_date|date:"M d, Y" }}</td>
+                                    <td>{{ rental.actual_return_dt|date:"M d, Y"|default:"Not returned" }}</td>
+                                    <td>
+                                        <span class="badge {% if rental.status == 'Returned' %}bg-success{% elif rental.status == 'Borrowed' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ rental.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No rental history available.</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Actions</h5>
+                    <div class="d-grid gap-2">
+                        {% if is_employee %}
+                        <a href="{% url 'library:book_update' book.book_id %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Book
+                        </a>
+                        <a href="{% url 'library:book_add_copies' book.book_id %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Add Copies
+                        </a>
+                        {% else %}
+                        <a href="{% url 'library:borrow_book' book.book_id %}" class="btn btn-primary">
+                            <i class="fas fa-book"></i> Borrow Book
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'library:book_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if similar_books %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Similar Books</h5>
+                    <div class="list-group">
+                        {% for similar in similar_books %}
+                        <a href="{% url 'library:book_detail' similar.book_id %}" class="list-group-item list-group-item-action">
+                            {{ similar.book_name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

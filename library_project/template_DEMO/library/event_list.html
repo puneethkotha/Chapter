@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Events - Chapter{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Events at Chapter</h1>
+
+    <!-- Exhibitions Section -->
+    <section class="mb-5">
+        <h2 class="mb-4">Exhibitions</h2>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Expected Attendance</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in exhibitions %}
+                    <tr>
+                        <td>{{ event.event_name }}</td>
+                        <td>{{ event.start_dt|date:"M. d, Y, g:i a" }}</td>
+                        <td>{{ event.end_dt|date:"M. d, Y, g:i a" }}</td>
+                        <td>{{ event.attd_no }} people</td>
+                        <td>
+                            {% if event.end_dt > now %}
+                                {% if user.is_staff %}
+                                    <a href="{% url 'library:event_update' event.event_id %}" class="btn btn-warning btn-sm">Edit</a>
+                                {% elif user.is_authenticated %}
+                                    {% if event.exhibition.attendees.count >= event.attd_no %}
+                                        <span class="text-danger">Exhibition Full</span>
+                                    {% else %}
+                                        <a href="{% url 'library:register_exhibition' event.event_id %}" class="btn btn-primary btn-sm">Register</a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'accounts:customer_login' %}" class="btn btn-outline-primary btn-sm">Login to Register</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Event Ended</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No exhibitions available at the moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Seminars Section -->
+    <section>
+        <h2 class="mb-4">Seminars</h2>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Expected Attendance</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in seminars %}
+                    <tr>
+                        <td>{{ event.event_name }}</td>
+                        <td>{{ event.start_dt|date:"M. d, Y, g:i a" }}</td>
+                        <td>{{ event.end_dt|date:"M. d, Y, g:i a" }}</td>
+                        <td>{{ event.attd_no }} people</td>
+                        <td>
+                            {% if event.end_dt > now %}
+                                {% if user.is_staff %}
+                                    <a href="{% url 'library:event_update' event.event_id %}" class="btn btn-warning btn-sm">Edit</a>
+                                {% elif is_author %}
+                                    <a href="{% url 'library:author_seminar_registration' %}" class="btn btn-primary btn-sm">Register as Author</a>
+                                {% else %}
+                                    <span class="text-muted">Author Registration Only</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Event Ended</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No seminars available at the moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %} 

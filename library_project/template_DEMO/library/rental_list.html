@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}My Rentals - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">My Rentals</h2>
+    
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="mb-3">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Statuses</option>
+                            <option value="Borrowed" {% if status_filter == 'Borrowed' %}selected{% endif %}>Borrowed</option>
+                            <option value="Returned" {% if status_filter == 'Returned' %}selected{% endif %}>Returned</option>
+                            <option value="Lost" {% if status_filter == 'Lost' %}selected{% endif %}>Lost</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            {% if rentals %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Book</th>
+                            <th>Borrow Date</th>
+                            <th>Expected Return</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rental in rentals %}
+                        <tr>
+                            <td>{{ rental.book_copy.book.book_name }}</td>
+                            <td>{{ rental.borrow_date|date:"M d, Y" }}</td>
+                            <td>{{ rental.exp_return_dt|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if rental.status == 'Returned' %}bg-success{% elif rental.status == 'Borrowed' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ rental.status }}
+                                </span>
+                                {% if rental.status == 'Borrowed' and rental.exp_return_dt < now %}
+                                <span class="badge bg-danger ms-2">
+                                    Overdue
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'library:rental_detail' rental.rental_id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-info-circle me-1"></i>Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                You don't have any rentals yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Borrow Book - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Borrow Book</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.book_name }}</h5>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Available copies: {{ available_copies }}
+                    </div>
+                    
+                    <form method="post" action="{% url 'library:borrow_book' book.book_id %}" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            By borrowing this book, you agree to:
+                            <ul class="mb-0 mt-2">
+                                <li>Return the book within 14 days</li>
+                                <li>Pay a rental fee of $5.00</li>
+                                <li>Pay late fees of $1.00 per day if returned after the due date</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-book me-2"></i>Borrow Book
+                            </button>
+                            <a href="{% url 'library:book_detail' book.book_id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Book Details
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

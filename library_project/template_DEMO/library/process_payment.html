@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Payment - Library Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Process Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Rental Information</h5>
+                        <dl class="row">
+                            <dt class="col-sm-4">Book</dt>
+                            <dd class="col-sm-8">{{ rental.book_copy.book.book_name }}</dd>
+                            
+                            <dt class="col-sm-4">Borrow Date</dt>
+                            <dd class="col-sm-8">{{ rental.borrow_date|date:"F d, Y" }}</dd>
+                            
+                            <dt class="col-sm-4">Expected Return</dt>
+                            <dd class="col-sm-8">{{ rental.exp_return_dt|date:"F d, Y" }}</dd>
+                        </dl>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Payment Details</h5>
+                        <dl class="row">
+                            <dt class="col-sm-4">Invoice #</dt>
+                            <dd class="col-sm-8">{{ invoice.invoice_id }}</dd>
+                            
+                            <dt class="col-sm-4">Amount</dt>
+                            <dd class="col-sm-8">${{ invoice.invoice_amt|floatformat:2 }}</dd>
+                        </dl>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Click the button below to process payment and return the book.
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check-circle me-2"></i>Confirm Payment and Return
+                            </button>
+                            <a href="{% url 'library:invoice_detail' invoice.invoice_id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Invoice
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
