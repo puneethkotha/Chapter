@@ -1,4 +1,4 @@
-# Library Management System
+# CHAPTER
 
 A comprehensive library management system built with Django that allows users to manage books, rentals, events, and study room reservations.
 
