@@ -2,11 +2,6 @@
 
 A comprehensive library management system built with Django that allows users to manage books, rentals, events, and study room reservations.
 
-## Team Members
-- PUNEETH KOTHA (pk3058)
-- JAYRAJ MANOJ PAMNANI (jmp10051)
-- ILKA JEAN (ifj2007)
-
 ## Features
 
 - User Authentication (Customers, Employees, Authors)
